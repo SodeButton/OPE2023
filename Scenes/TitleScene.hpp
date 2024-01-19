@@ -9,15 +9,19 @@
 
 class TitleScene : public Scene {
 public:
-    TitleScene(class Game* game);
-    ~TitleScene();
+    explicit TitleScene(class Game *game);
+
+    ~TitleScene() override = default;
+
     void Start() override;
+
     void Update(float deltaTime) override;
-    void ProcessInput(const Uint8* state) override;
+
+    void ProcessInput(const Uint8 *state) override;
+
     std::string GetSceneName() override;
 
 private:
-    class GameObject* mStartMsg; // 開始メッセージ
 
 };
 

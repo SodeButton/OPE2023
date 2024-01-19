@@ -19,14 +19,6 @@ public:
 
     void Shutdown();
 
-    void AddGameObject(class GameObject *gameObject);
-
-    void RemoveGameObject(class GameObject *gameObject);
-
-    void AddSprite(class SpriteComponent *sprite);
-
-    void RemoveSprite(class SpriteComponent *sprite);
-
     SDL_Texture *LoadTexture(const std::string &fileName);
 
     constexpr static const int ScreenWidth = 1280;
@@ -52,20 +44,27 @@ private:
     SDL_Renderer *mRenderer; // SDLレンダラー
     Uint32 mTickCount;      // ゲーム時間
     bool mIsRunning;         // 実行中か否か？
-    bool mUpdatingGameObject;    // ゲームオブジェクト更新中か否か？
     bool mGameOver;         // ゲームをクリアしたか否か？
 
     class Scene *mScene;
 
     class Scene *mNextScene;
 
+    int mScore;
+
+    bool mIsDebug = false;
+
 public:
     // getter, setter
-    Scene *GetNextScene() const { return mNextScene; }
+    [[nodiscard]] Scene *GetNextScene() const { return mNextScene; }
 
     void SetNextScene(class Scene *scene) { mNextScene = scene; }
 
-    Scene *GetScene() const { return mScene; }
+    [[nodiscard]] SDL_Window *GetWindow() const { return mWindow; }
+
+    [[nodiscard]] SDL_Renderer *GetRenderer() const { return mRenderer; }
+
+    [[nodiscard]] Scene *GetScene() const { return mScene; }
 
     void SetScene(class Scene *scene) { mScene = scene; }
 
@@ -73,8 +72,13 @@ public:
 
     void SetGameOver(const bool isGameOver) { mGameOver = isGameOver; }
 
-    bool GetGameOver() const { return mGameOver; }
+    [[nodiscard]] bool GetGameOver() const { return mGameOver; }
 
+    void AddScore(const int score) { mScore += score; }
+
+    void SetScore(const int score) { mScore = score; }
+
+    [[nodiscard]] int GetScore() const { return mScore; }
 };
 
 

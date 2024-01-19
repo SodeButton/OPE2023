@@ -11,16 +11,19 @@
 class SpriteComponent : public Component {
 
 public:
-    SpriteComponent(GameObject *gameObject, int drawOrder = 100);
+    explicit SpriteComponent(GameObject *gameObject, int drawOrder = 100);
 
-    ~SpriteComponent();
+    ~SpriteComponent() override;
 
     virtual void Draw(SDL_Renderer *renderer);
 
     virtual void SetTexture(SDL_Texture *texture);
 
+    void DebugDraw(SDL_Renderer *renderer) override;
+
 protected:
     SDL_Texture *mTexture;
+    SDL_RendererFlip mFlip;
     int mDrawOrder; // 描画順
     int mTexWidth;  // テクスチャ横幅
     int mTexHeight; // テクスチャ縦幅
@@ -32,6 +35,8 @@ public:
     int GetTexWidth() const { return mTexWidth; }
 
     int GetTexHeight() const { return mTexHeight; }
+
+    void SetFlip(SDL_RendererFlip flip) { mFlip = flip; }
 };
 
 

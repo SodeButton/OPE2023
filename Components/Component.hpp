@@ -13,6 +13,8 @@ public:
 
     virtual void Update(float deltaTime);
 
+    virtual void DebugDraw(struct SDL_Renderer *renderer);
+
 protected:
     class GameObject *mGameObject;
 

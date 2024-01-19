@@ -3,24 +3,46 @@
 //
 
 #include "TitleScene.hpp"
+#include "GameScene.hpp"
 #include "Scene.hpp"
 #include "../Game.hpp"
 #include "../GameObjects/GameObject.hpp"
-#include <SDL2/SDL_ttf.h>
+#include "../GameObjects/TextObject.hpp"
+#include "../Components/SpriteComponent.hpp"
+#include "../Components/TextComponent.hpp"
 
 TitleScene::TitleScene(class Game *game) : Scene(game) {}
-
-TitleScene::~TitleScene() {}
 
 void TitleScene::Start() {
     // クリアフラグを初期化
     mGame->SetGameOver(false);
 
-    const auto *title = new GameObject(mGame);
+    // 背景の作成
+    auto *bg = new GameObject(this);
+    bg->SetPosition(Vector2(1280 / 2, 720 / 2));
+    auto *bgSprite = new SpriteComponent(bg, 20);
 
-    auto *font = TTF_OpenFont("Assets/Fonts/arial.ttf", 24);
-    auto *text = TTF_RenderUTF8_Blended(font, "Press Space or Enter to start", {255, 255, 255});
-//    SDL_BlitSurface(text, NULL, screen, &scr_rect);
+    // https://opengameart.org/content/tower-defense-snow-background
+    bgSprite->SetTexture(mGame->LoadTexture("snow_template1.jpg"));
+
+    auto *titleText = new TextObject(this);
+    titleText->SetPosition(Vector2(1280 / 2, 720 / 3));
+    titleText->SetText("SnowShooting");
+    titleText->SetColor(SDL_Color{0, 0, 0, 255});
+    titleText->SetFontSize(120);
+
+    auto *authorText = new TextObject(this);
+    authorText->SetPosition(Vector2(1280 / 1.25f, 720 / 1.05f));
+    authorText->SetText("by HW21A105 Takuya HAYASHI");
+    authorText->SetColor(SDL_Color{0, 0, 0, 255});
+    authorText->SetFontSize(32);
+
+    auto *startText = new TextObject(this);
+    startText->SetPosition(Vector2(1280 / 2.0f, 720 / 1.5f));
+    startText->SetText("Press Space or Enter to Start");
+    startText->SetColor(SDL_Color{0, 0, 0, 255});
+    startText->SetFontSize(30);
+
 }
 
 void TitleScene::Update(float deltaTime) {
@@ -28,8 +50,10 @@ void TitleScene::Update(float deltaTime) {
 
 void TitleScene::ProcessInput(const Uint8 *state) {
     // スペースかエンター押下でゲームシーンに遷移
-    if (state[SDL_SCANCODE_SPACE] || state[SDL_SCANCODE_RETURN]) {
 
+    if (state[SDL_SCANCODE_SPACE] || state[SDL_SCANCODE_RETURN]) {
+        GetGame()->SetNextScene(new GameScene(mGame));
+        printf("GameScene\n");
     }
 }
 

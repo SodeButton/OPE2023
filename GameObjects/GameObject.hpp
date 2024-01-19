@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <SDL2/SDL_ttf.h>
 #include "../Commons/Vector2.hpp"
 
 class GameObject {
@@ -18,15 +19,25 @@ public:
         EDead
     };
 
-    explicit GameObject(class Game* game);
+    explicit GameObject(class Scene *scene);
+
     virtual ~GameObject();
 
     void Update(float deltaTime);
+
     void UpdateComponents(float deltaTime);
+
     virtual void UpdateGameObject(float deltaTime);
 
-    void AddComponent(class Component* component);
-    void RemoveComponent(class Component* component);
+    void AddComponent(class Component *component);
+
+    void RemoveComponent(class Component *component);
+
+    virtual void OnCollisionEnter(class BoxColliderComponent *other);
+
+    virtual void OnCollisionStay(class BoxColliderComponent *other);
+
+    virtual void DebugDraw(struct SDL_Renderer *renderer);
 
 private:
     State mState;
@@ -35,22 +46,37 @@ private:
     Vector2 mPosition;
     Vector2 mScale;
     float mRotation;
-    std::vector<class Component*> mComponents;
-    class Game* mGame;
+    std::vector<class Component *> mComponents;
+
+    class Scene *mScene;
+
+    TTF_Font *mFont;
 
 public:
     [[maybe_unused]] [[nodiscard]] State GetState() const { return mState; }
+
     [[maybe_unused]] void SetState(const State state) { mState = state; }
-    [[maybe_unused]] [[nodiscard]] const Vector2& GetPosition() const { return mPosition; }
-    [[maybe_unused]] void SetPosition(const Vector2& position) { mPosition = position; }
-    [[maybe_unused]] [[nodiscard]] const Vector2& GetScale() const { return mScale; }
-    [[maybe_unused]] void SetScale(const Vector2& scale) { mScale = scale; }
+
+    [[maybe_unused]] [[nodiscard]] const Vector2 &GetPosition() const { return mPosition; }
+
+    [[maybe_unused]] void SetPosition(const Vector2 &position) { mPosition = position; }
+
+    [[maybe_unused]] [[nodiscard]] const Vector2 &GetScale() const { return mScale; }
+
+    [[maybe_unused]] void SetScale(const Vector2 &scale) { mScale = scale; }
+
     [[maybe_unused]] [[nodiscard]] float GetRotation() const { return mRotation; }
+
     [[maybe_unused]] void SetRotation(const float rotation) { mRotation = rotation; }
-    [[maybe_unused]] [[nodiscard]] class Game* GetGame() const { return mGame; }
-    [[maybe_unused]] void SetName(const std::string& name) { mName = name; }
+
+    [[maybe_unused]] [[nodiscard]] class Scene *GetScene() const { return mScene; }
+
+    [[maybe_unused]] void SetName(const std::string &name) { mName = name; }
+
     [[maybe_unused]] [[nodiscard]] std::string GetName() const { return mName; }
-    [[maybe_unused]] void SetTag(const std::string& tag) { mTag = tag; }
+
+    [[maybe_unused]] void SetTag(const std::string &tag) { mTag = tag; }
+
     [[maybe_unused]] [[nodiscard]] std::string GetTag() const { return mTag; }
 };
 

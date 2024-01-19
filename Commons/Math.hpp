@@ -20,8 +20,14 @@ namespace Math {
 
     static std::random_device seed_gen;
     static std::default_random_engine randomEngine(seed_gen());
+
     inline float GetRand(float min, float max) {
         std::uniform_real_distribution<float> dist(min, max);
+        return dist(Math::randomEngine);
+    }
+
+    inline int GetRand(int min, int max) {
+        std::uniform_int_distribution<int> dist(min, max);
         return dist(Math::randomEngine);
     }
 }

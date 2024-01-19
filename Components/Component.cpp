@@ -15,3 +15,5 @@ Component::~Component() {
 }
 
 void Component::Update(float deltaTime) {}
+
+void Component::DebugDraw(SDL_Renderer *renderer) {}

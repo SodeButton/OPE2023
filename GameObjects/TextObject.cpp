@@ -3,3 +3,14 @@
 //
 
 #include "TextObject.hpp"
+
+TextObject::TextObject(Scene *scene, int drawOrder)
+        : GameObject(scene) {
+    // TextComponentを追加
+    mTextComponent = new TextComponent(this, drawOrder);
+    AddComponent(mTextComponent);
+}
+
+TextObject::~TextObject() {
+    delete mTextComponent;
+};

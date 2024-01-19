@@ -4,14 +4,15 @@
 
 #include "Game.hpp"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include "GameObjects/GameObject.hpp"
 #include "Components/SpriteComponent.hpp"
-#include "Commons/Vector2.hpp"
+#include "Components/BoxColliderComponent.hpp"
 #include "Scenes/TitleScene.hpp"
 
 Game::Game()
-        : mWindow(nullptr), mRenderer(nullptr), mTickCount(0), mIsRunning(true), mUpdatingGameObject(false),
-          mGameOver(false), mScene(nullptr), mNextScene(nullptr) {
+        : mWindow(nullptr), mRenderer(nullptr), mTickCount(0), mIsRunning(true),
+          mGameOver(false), mScene(nullptr), mNextScene(nullptr), mScore(0) {
 }
 
 bool Game::Initialize() {
@@ -44,17 +45,13 @@ bool Game::InitSDL() {
     success = IMG_Init(IMG_INIT_PNG) != 0;
     if (!success) return false;
 
+    success = TTF_Init() == 0;
+    if (!success) return false;
+
     return true;
 }
 
 void Game::InitScene() {
-    // 背景の作成
-    auto *bg = new GameObject(this);
-    bg->SetPosition(Vector2(ScreenWidth / 2, ScreenHeight / 2));
-    auto *bgSprite = new SpriteComponent(bg, 20);
-
-    // https://opengameart.org/content/tower-defense-snow-background
-    bgSprite->SetTexture(LoadTexture("snow_template1.jpg"));
 }
 
 void Game::RunLoop() {
@@ -67,7 +64,7 @@ void Game::RunLoop() {
         // シーン更新処理
         UpdateScene();
         // シーン開始処理
-        if (mScene->GetSceneName() != mNextScene->GetSceneName()) {
+        if (mScene != mNextScene) {
             delete mScene;
             mScene = mNextScene;
             StartScene();
@@ -92,33 +89,8 @@ void Game::UpdateScene() {
     }
     mTickCount = SDL_GetTicks();
 
-    // アクタ更新処理
-    mUpdatingGameObject = true;
-    for (auto gameObject: mGameObjects) {
-        gameObject->Update(deltaTime);
-    }
-    mUpdatingGameObject = false;
-
-    // 待機中のアクタを追加
-    for (auto pending: mPendingGameObjects) {
-        mGameObjects.emplace_back(pending);
-    }
-    mPendingGameObjects.clear();
-
-    // 各シーンの更新処理
-    mScene->Update(deltaTime);
-
-    // 死亡したアクタを破棄
-    std::vector<GameObject *> deadGameObjects;
-    for (auto gameObject: mGameObjects) {
-        if (gameObject->GetState() == GameObject::EDead) {
-            deadGameObjects.emplace_back(gameObject);
-        }
-    }
-    for (auto gameObject: deadGameObjects) {
-        delete gameObject;
-    }
-
+    // シーン更新処理
+    mScene->UpdateScene(deltaTime);
     // 出力処理
     GenerateOutput();
 }
@@ -134,7 +106,7 @@ void Game::ProcessInput() {
         }
     }
     // キー入力イベント
-    const Uint8 *state = SDL_GetKeyboardState(NULL);
+    const Uint8 *state = SDL_GetKeyboardState(nullptr);
     if (state[SDL_SCANCODE_ESCAPE]) {
         mIsRunning = false;
     }
@@ -145,12 +117,17 @@ void Game::ProcessInput() {
 
 void Game::GenerateOutput() {
     // 背景色をクリア
-    SDL_SetRenderDrawColor(mRenderer, 19, 56, 111, 255); // 紺色
+    SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 255); // 紺色
     SDL_RenderClear(mRenderer);
 
-    // スプライトを描画
-    for (auto sprite: mSprites) {
-        sprite->Draw(mRenderer);
+    for (auto component: mScene->GetSprites()) {
+        component->Draw(mRenderer);
+    }
+
+    if (mIsDebug) {
+        for (auto gameObject: mScene->GetGameObjects()) {
+            gameObject->DebugDraw(mRenderer);
+        }
     }
 
     // バックバッファとスワップ(ダブルバッファ)
@@ -162,7 +139,7 @@ void Game::Shutdown() {
     while (!mGameObjects.empty()) {
         delete mGameObjects.back();
     }
-    for (auto i: mCachedTextures) {
+    for (const auto &i: mCachedTextures) {
         SDL_DestroyTexture(i.second);
     }
     mCachedTextures.clear();
@@ -171,46 +148,6 @@ void Game::Shutdown() {
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
     IMG_Quit();
-}
-
-
-// GameObject追加処理
-void Game::AddGameObject(GameObject *gameObject) {
-    // GameObject更新中ならPendingに格納
-    mUpdatingGameObject
-    ? mPendingGameObjects.emplace_back(gameObject)
-    : mGameObjects.emplace_back(gameObject);
-}
-
-// GameObject削除処理
-void Game::RemoveGameObject(GameObject *gameObject) {
-    auto iter = std::find(mPendingGameObjects.begin(), mPendingGameObjects.end(), gameObject);
-    if (iter != mPendingGameObjects.end()) {
-        mPendingGameObjects.erase(iter);
-    }
-    iter = std::find(mGameObjects.begin(), mGameObjects.end(), gameObject);
-    if (iter != mGameObjects.end()) {
-        mGameObjects.erase(iter);
-    }
-}
-
-// 描画中のスプライト追加処理
-void Game::AddSprite(SpriteComponent *sprite) {
-    // 描画順にソートして追加
-    int myDrawOrder = sprite->GetDrawOrder();
-    auto iter = mSprites.begin();
-    for (; iter != mSprites.end(); ++iter) {
-        if (myDrawOrder < (*iter)->GetDrawOrder()) {
-            break;
-        }
-    }
-    mSprites.insert(iter, sprite);
-}
-
-// 描画中のスプライト削除処理
-void Game::RemoveSprite(SpriteComponent *sprite) {
-    auto iter = std::find(mSprites.begin(), mSprites.end(), sprite);
-    mSprites.erase(iter);
 }
 
 // ファイル名からテクスチャをロードする
